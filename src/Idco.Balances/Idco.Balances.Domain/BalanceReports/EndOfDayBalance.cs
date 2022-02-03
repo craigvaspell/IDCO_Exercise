@@ -1,4 +1,4 @@
-﻿namespace Idco.Balances.Domain.AccountsBalanceReports
+﻿namespace Idco.Balances.Domain.BalanceReports
 {
     using System;
 

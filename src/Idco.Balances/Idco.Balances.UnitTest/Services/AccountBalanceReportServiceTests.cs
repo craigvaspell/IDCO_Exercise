@@ -2,44 +2,41 @@
 {
     using FluentAssertions;
     using Idco.Balances.Domain.Accounts;
-    using Idco.Balances.Domain.AccountsBalanceReports;
+    using Idco.Balances.Domain.BalanceReports;
     using Idco.Balances.Domain.Common;
-    using Idco.Balances.Domain.Requests;
     using Idco.Balances.Domain.Services;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
 
-    public class EndOfDayBalanceReportServiceTests
+    public class AccountBalanceReportServiceTests
     {
         [Theory]
         [MemberData(nameof(TestData_AccountRequests))]
-        public void EndOfDayBalanceReportService_GetAccountBalanceReport(TestRecord testRecord)
+        public void AccountBalanceReportService_GetEodBalanceReport(TestRecord testRecord)
         {
-            var target = new EndOfDayBalanceReportService();
+            var target = new AccountBalanceReportService();
 
-            var result = target.GetAccountBalanceReport(testRecord.InputRequest);
+            var result = target.GetEodBalanceReport(testRecord.Input);
 
             result.Should().BeEquivalentTo(testRecord.ExpectedBalanceReport);
         }
 
         public static IEnumerable<object[]> TestData_AccountRequests()
         {
-            // Single Account, No balances to calculate
+            // Basis account with no transactions, no balances to calculate
             yield return new object[] {
                 new TestRecord(
-                    inputRequest: GetAccountsBalanceRequest(
-                        DateTime.UtcNow,
-                        new List<Account>() { GetBasisAccount() }),
-                    expectedReport: new AccountsBalanceReport(
+                    input: GetBasisAccount(),
+                    expectedReport: new BalanceReport(
                         totalCredits: 0,
                         totalDebits: 0,
                         endOfDayBalances: new List<EndOfDayBalance>()))
             };
 
 
-            // Single Account, transactions on one day
+            // Transactions on one day
             var singleDayTrans = GetTransactions(
                 5,
                 DateTime.UtcNow.AddDays(-2),
@@ -50,10 +47,8 @@
 
             yield return new object[] {
                 new TestRecord(
-                    inputRequest: GetAccountsBalanceRequest(
-                        DateTime.UtcNow,
-                        new List<Account>() { singleDayAccount }),
-                    expectedReport: new AccountsBalanceReport(
+                    input: singleDayAccount,
+                    expectedReport: new BalanceReport(
                         totalCredits: singleDayTrans.totalCredit,
                         totalDebits: singleDayTrans.totalDebit,
                         endOfDayBalances: new List<EndOfDayBalance>()
@@ -65,7 +60,7 @@
             };
 
 
-            // Single Account, transactions on multiple days
+            // Transactions on multiple days
             var day1Trans = GetTransactions(
                 5,
                 DateTime.UtcNow.AddDays(-2),
@@ -80,10 +75,8 @@
 
             yield return new object[] {
                 new TestRecord(
-                    inputRequest: GetAccountsBalanceRequest(
-                        DateTime.UtcNow,
-                        new List<Account>() { multiDayAccount }),
-                    expectedReport: new AccountsBalanceReport(
+                    input: multiDayAccount,
+                    expectedReport: new BalanceReport(
                         totalCredits: day1Trans.totalCredit + day2Trans.totalCredit,
                         totalDebits: day1Trans.totalDebit + day2Trans.totalDebit,
                         endOfDayBalances: new List<EndOfDayBalance>()
@@ -100,27 +93,16 @@
 
         public class TestRecord
         {
-            public AccountsBalanceRequest InputRequest { get; set; }
-            public AccountsBalanceReport ExpectedBalanceReport { get; set; }
+            public Account Input { get; set; }
+            public BalanceReport ExpectedBalanceReport { get; set; }
 
             public TestRecord(
-                AccountsBalanceRequest inputRequest,
-                AccountsBalanceReport expectedReport)
+                Account input,
+                BalanceReport expectedReport)
             {
-                InputRequest = inputRequest;
+                Input = input;
                 ExpectedBalanceReport = expectedReport;
             }
-        }
-
-        private static AccountsBalanceRequest GetAccountsBalanceRequest(DateTime requestDateTime, ICollection<Account> accounts)
-        {
-            return new AccountsBalanceRequest(
-                brandName: "TestBank",
-                dataSourceName: "TestDataSource",
-                dataSourceType: "CredentialSharing",
-                requestDateTime: requestDateTime,
-                accounts: accounts
-                );
         }
 
         private static Account GetBasisAccount()
