@@ -1,4 +1,4 @@
-﻿namespace Idco.Balances.Domain.Entities
+﻿namespace Idco.Balances.Domain.Accounts
 {
     using Idco.Balances.Domain.Common;
     using System.Collections.Generic;
@@ -11,7 +11,7 @@
         public AccountType AccountType { get; }
         public AccountSubType AccountSubType { get; }
         public IDictionary<string, string> Identifiers { get; }
-        public IEnumerable<Party> Parties { get; }
+        public IEnumerable<Party> Parties { get; set; }
         public IEnumerable<StandingOrder> StandingOrders { get; set; }
         public IEnumerable<DirectDebit> DirectDebits { get; set; }
         public IEnumerable<Balance> Balances { get; set; }
@@ -22,7 +22,7 @@
             string currencyCode,
             string displayName,
             AccountType accountType,
-            AccountSubType subAccountType,
+            AccountSubType accountSubType,
             IDictionary<string, string> identifiers,
             IEnumerable<Party> parties,
             IEnumerable<DirectDebit> directDebits,
@@ -33,7 +33,7 @@
             CurrencyCode = currencyCode;
             DisplayName = displayName;
             AccountType = accountType;
-            AccountSubType = subAccountType;
+            AccountSubType = accountSubType;
             Identifiers = identifiers;
             Parties = parties;
             DirectDebits = directDebits;

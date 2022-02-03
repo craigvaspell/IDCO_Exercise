@@ -1,4 +1,4 @@
-﻿namespace Idco.Balances.Domain.Entities
+﻿namespace Idco.Balances.Domain.Accounts
 {
     using Idco.Balances.Domain.Common;
     using System;
@@ -15,15 +15,15 @@
         public Transaction(
             string description,
             long amount,
-            CreditDebitIndicator signage,
-            TransactionStatus transactionStatus,
+            CreditDebitIndicator creditDebitIndicator,
+            TransactionStatus status,
             DateTime bookingDate,
             MerchantDetails merchantDetails)
         {
             Description = description;
             Amount = amount;
-            CreditDebitIndicator = signage;
-            Status = transactionStatus;
+            CreditDebitIndicator = creditDebitIndicator;
+            Status = status;
             BookingDate = bookingDate;
             MerchantDetails = merchantDetails;
         }

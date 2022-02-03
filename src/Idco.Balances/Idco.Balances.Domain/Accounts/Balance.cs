@@ -1,4 +1,4 @@
-﻿namespace Idco.Balances.Domain.Entities
+﻿namespace Idco.Balances.Domain.Accounts
 {
     using Idco.Balances.Domain.Common;
     using System.Collections.Generic;

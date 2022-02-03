@@ -1,4 +1,4 @@
-﻿namespace Idco.Balances.Domain.Entities
+﻿namespace Idco.Balances.Domain.Accounts
 {
     public class CreditLine
     {
