@@ -161,22 +161,19 @@
                 displayName: "Test Account",
                 accountType: AccountType.Personal,
                 accountSubType: AccountSubType.CurrentAccount,
-                identifiers: new Dictionary<string, string>(),
+                identifiers: new Identifiers("", "", ""),
                 parties: new List<Party>(),
                 directDebits: new List<DirectDebit>(),
-                balances: new List<Balance>()
-                {
-                    new Balance(
-                        balanceType: BalanceType.Current,
+                balances: new Balances(
+                    current: new Balance(
                         amount: 100,
                         creditDebitIndicator: CreditDebitIndicator.Credit,
                         creditLines: null),
-                    new Balance(
-                        balanceType: BalanceType.Available,
+                    available: new Balance(
                         amount: 100,
                         creditDebitIndicator: CreditDebitIndicator.Credit,
                         creditLines: null)
-                },
+                ),
                 transactions: new List<Transaction>());
         }
     }
