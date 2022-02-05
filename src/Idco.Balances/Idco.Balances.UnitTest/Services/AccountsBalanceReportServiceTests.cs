@@ -40,13 +40,13 @@
 
         [Theory]
         [MemberData(nameof(TestData_AccountRequests))]
-        public void AccountsBalanceReportService_GetEodBalanceReport(TestRecord testRecord)
+        public async Task AccountsBalanceReportService_GetEodBalanceReport(TestRecord testRecord)
         {
             var mockAccountService = GetMockAccountBalanceReportService();
             var mockLogger = GetMockLogger();
             var target = new AccountsBalanceReportService(mockAccountService.Object, mockLogger.Object);
 
-            var result = target.GetEodBalanceReport(testRecord.InputRequest);
+            var result = await target.GetEodBalanceReport(testRecord.InputRequest);
 
             result.Should().BeEquivalentTo(testRecord.ExpectedBalanceReport);
         }
@@ -58,8 +58,8 @@
             var totalEndBalancePerAccount = 50;
             var totalStartBalancePerAccount = 0;
 
-            var creditPerDay = 100;
-            var debitPerDay = 50;
+            var creditPerAccountPerDay = 100;
+            var debitPerAccountPerDay = 50;
 
 
             // Single Account, should give us our mock +200,-100
@@ -70,8 +70,8 @@
                     expectedReport: new EodBalanceListReport(
                         endOfDayBalances: new List<EodBalanceReport>()
                         {
-                            new EodBalanceReport(DateTime.UtcNow.Date, totalEndBalancePerAccount, creditPerDay, debitPerDay),
-                            new EodBalanceReport(DateTime.UtcNow.Date.AddDays(-1), totalStartBalancePerAccount, creditPerDay, debitPerDay)
+                            new EodBalanceReport(DateTime.UtcNow.Date, totalEndBalancePerAccount, creditPerAccountPerDay, debitPerAccountPerDay),
+                            new EodBalanceReport(DateTime.UtcNow.Date.AddDays(-1), totalStartBalancePerAccount, creditPerAccountPerDay, debitPerAccountPerDay)
                         }),
 
                     totalCredits: totalCreditPerAccount,
@@ -90,8 +90,8 @@
                     expectedReport: new EodBalanceListReport(
                         endOfDayBalances: new List<EodBalanceReport>()
                         {
-                            new EodBalanceReport(DateTime.UtcNow.Date, totalEndBalancePerAccount, creditPerDay, debitPerDay),
-                            new EodBalanceReport(DateTime.UtcNow.Date.AddDays(-1), totalStartBalancePerAccount, creditPerDay, debitPerDay)
+                            new EodBalanceReport(DateTime.UtcNow.Date, totalEndBalancePerAccount * 2, creditPerAccountPerDay * 2, debitPerAccountPerDay * 2),
+                            new EodBalanceReport(DateTime.UtcNow.Date.AddDays(-1), totalStartBalancePerAccount * 2, creditPerAccountPerDay * 2, debitPerAccountPerDay * 2)
                         }),
 
                     totalCredits: totalCreditPerAccount * 2,
@@ -112,8 +112,8 @@
                     expectedReport: new EodBalanceListReport(
                         endOfDayBalances: new List<EodBalanceReport>()
                         {
-                            new EodBalanceReport(DateTime.UtcNow.Date, totalEndBalancePerAccount, creditPerDay, debitPerDay),
-                            new EodBalanceReport(DateTime.UtcNow.Date.AddDays(-1), totalStartBalancePerAccount, creditPerDay, debitPerDay)
+                            new EodBalanceReport(DateTime.UtcNow.Date, totalEndBalancePerAccount * 13, creditPerAccountPerDay * 13, debitPerAccountPerDay * 13),
+                            new EodBalanceReport(DateTime.UtcNow.Date.AddDays(-1), totalStartBalancePerAccount * 13, creditPerAccountPerDay * 13, debitPerAccountPerDay * 13)
                         }),
 
                     totalCredits: totalCreditPerAccount * 13,

@@ -12,7 +12,7 @@
         private Lazy<long> totalCredits;
         private Lazy<long> totalDebits;
 
-        public ICollection<EodBalanceReport> Balances { get; }
+        public IEnumerable<EodBalanceReport> Balances { get; }
             = new List<EodBalanceReport>();
 
 
@@ -29,7 +29,7 @@
         }
 
         // Calculate by balances
-        public EodBalanceListReport(ICollection<EodBalanceReport> endOfDayBalances)
+        public EodBalanceListReport(IEnumerable<EodBalanceReport> endOfDayBalances)
         {
             Balances = endOfDayBalances;
 
