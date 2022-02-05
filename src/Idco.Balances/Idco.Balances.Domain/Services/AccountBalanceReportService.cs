@@ -26,7 +26,7 @@
         {
             try
             {
-                var initialBalance = account.Balances.FirstOrDefault(b => b.BalanceType == Common.BalanceType.Current)
+                var initialBalance = account.Balances.Current
                     ?? throw new ArgumentException("Account has no indicated current balance.");
 
                 if (account.Transactions == null || !account.Transactions.Any())

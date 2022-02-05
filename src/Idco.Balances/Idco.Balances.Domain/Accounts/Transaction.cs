@@ -5,12 +5,12 @@
 
     public class Transaction
     {
-        public string Description { get; }
+        public string Description { get; set; }
         public long Amount { get; set; }
-        public CreditDebitIndicator CreditDebitIndicator { get; }
+        public CreditDebitIndicator CreditDebitIndicator { get; set; }
         public TransactionStatus Status { get; set; }
-        public DateTime BookingDate { get; }
-        public MerchantDetails MerchantDetails { get; }
+        public DateTime BookingDate { get; set; }
+        public MerchantDetails MerchantDetails { get; set; }
 
         public long SignedAmount => CreditDebitIndicator == CreditDebitIndicator.Credit
             ? Amount

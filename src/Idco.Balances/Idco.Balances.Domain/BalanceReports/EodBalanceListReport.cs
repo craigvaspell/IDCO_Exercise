@@ -12,7 +12,7 @@
         private Lazy<long> totalCredits;
         private Lazy<long> totalDebits;
 
-        public IEnumerable<EodBalanceReport> Balances { get; }
+        public IEnumerable<EodBalanceReport> Balances { get; set; }
             = new List<EodBalanceReport>();
 
 
