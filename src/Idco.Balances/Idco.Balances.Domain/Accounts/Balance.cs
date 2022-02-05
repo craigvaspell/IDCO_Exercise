@@ -10,6 +10,10 @@
         public CreditDebitIndicator CreditDebitIndicator { get; }
         public IEnumerable<CreditLine> CreditLines { get; }
 
+        public long SignedAmount => CreditDebitIndicator == CreditDebitIndicator.Credit
+            ? Amount
+            : Amount * -1;
+
         public Balance(
             BalanceType balanceType,
             long amount,

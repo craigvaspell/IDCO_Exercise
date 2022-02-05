@@ -5,42 +5,55 @@
     using Idco.Balances.Domain.BalanceReports;
     using Idco.Balances.Domain.Common;
     using Idco.Balances.Domain.Services;
+    using Microsoft.Extensions.Logging;
+    using Moq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Xunit;
 
     public class AccountBalanceReportServiceTests
     {
+        private Mock<ILogger<AccountBalanceReportService>> GetMockLogger()
+        {
+            return new Mock<ILogger<AccountBalanceReportService>>();
+        }
+
+
         [Theory]
         [MemberData(nameof(TestData_AccountRequests))]
-        public void AccountBalanceReportService_GetEodBalanceReport(TestRecord testRecord)
+        public async Task AccountBalanceReportService_GetEodBalanceReport(TestRecord testRecord)
         {
-            var target = new AccountBalanceReportService();
+            var mockLogger = GetMockLogger();
+            var target = new AccountBalanceReportService(mockLogger.Object);
 
-            var result = target.GetEodBalanceReport(testRecord.Input);
+            var result = await target.GetEodBalanceReport(testRecord.Input);
 
             result.Should().BeEquivalentTo(testRecord.ExpectedBalanceReport);
         }
 
         public static IEnumerable<object[]> TestData_AccountRequests()
         {
+            var initialBalance = 100L;
+
             // Basis account with no transactions, no balances to calculate
             yield return new object[] {
                 new TestRecord(
                     input: GetBasisAccount(),
-                    expectedReport: new BalanceReport(
-                        totalCredits: 0,
-                        totalDebits: 0,
-                        endOfDayBalances: new List<EndOfDayBalance>()))
+                    expectedReport: new EodBalanceListReport(
+                        endOfDayBalances: new List<EodBalanceReport>()),
+                    totalCredits: 0,
+                    totalDebits: 0)
             };
 
 
             // Transactions on one day
             var singleDayTrans = GetTransactions(
                 5,
-                DateTime.UtcNow.AddDays(-2),
-                DateTime.UtcNow.AddDays(-1));
+                DateTime.UtcNow.AddDays(-2).Date,
+                DateTime.UtcNow.AddDays(-1).Date);
+            var singleDayBalance = initialBalance - singleDayTrans.totalCredit + singleDayTrans.totalDebit;
 
             var singleDayAccount = GetBasisAccount();
             singleDayAccount.Transactions = singleDayTrans.transactions;
@@ -48,27 +61,31 @@
             yield return new object[] {
                 new TestRecord(
                     input: singleDayAccount,
-                    expectedReport: new BalanceReport(
-                        totalCredits: singleDayTrans.totalCredit,
-                        totalDebits: singleDayTrans.totalDebit,
-                        endOfDayBalances: new List<EndOfDayBalance>()
+                    expectedReport: new EodBalanceListReport(
+                        endOfDayBalances: new List<EodBalanceReport>()
                         {
-                            new EndOfDayBalance(
-                                DateTime.UtcNow.AddDays(-1),
-                                singleDayTrans.totalCredit - singleDayTrans.totalDebit)
-                        }))
+                            new EodBalanceReport(
+                                DateTime.UtcNow.AddDays(-2).Date,
+                                singleDayBalance,
+                                singleDayTrans.totalCredit,
+                                singleDayTrans.totalDebit)
+                        }),
+                    totalCredits: singleDayTrans.totalCredit,
+                    totalDebits: singleDayTrans.totalDebit)
             };
 
 
             // Transactions on multiple days
             var day1Trans = GetTransactions(
                 5,
-                DateTime.UtcNow.AddDays(-2),
-                DateTime.UtcNow.AddDays(-1));
+                DateTime.UtcNow.AddDays(-2).Date,
+                DateTime.UtcNow.AddDays(-1).Date);
             var day2Trans = GetTransactions(
                 5,
-                DateTime.UtcNow.AddDays(-3),
-                DateTime.UtcNow.AddDays(-2));
+                DateTime.UtcNow.AddDays(-3).Date,
+                DateTime.UtcNow.AddDays(-2).Date);
+            var day1Balance = initialBalance - day1Trans.totalCredit + day1Trans.totalDebit;
+            var day2Balance = day1Balance - day2Trans.totalCredit + day2Trans.totalDebit;
 
             var multiDayAccount = GetBasisAccount();
             multiDayAccount.Transactions = day1Trans.transactions.Union(day2Trans.transactions);
@@ -76,32 +93,42 @@
             yield return new object[] {
                 new TestRecord(
                     input: multiDayAccount,
-                    expectedReport: new BalanceReport(
-                        totalCredits: day1Trans.totalCredit + day2Trans.totalCredit,
-                        totalDebits: day1Trans.totalDebit + day2Trans.totalDebit,
-                        endOfDayBalances: new List<EndOfDayBalance>()
+                    expectedReport: new EodBalanceListReport(
+                        endOfDayBalances: new List<EodBalanceReport>()
                         {
-                            new EndOfDayBalance(
-                                DateTime.UtcNow.AddDays(-1),
-                                day1Trans.totalCredit - day1Trans.totalDebit),
-                            new EndOfDayBalance(
-                                DateTime.UtcNow.AddDays(-2),
-                                day2Trans.totalCredit - day2Trans.totalDebit)
-                        }))
+                            new EodBalanceReport(
+                                DateTime.UtcNow.AddDays(-2).Date,
+                                day1Balance,
+                                day1Trans.totalCredit,
+                                day1Trans.totalDebit),
+                            new EodBalanceReport(
+                                DateTime.UtcNow.AddDays(-3).Date,
+                                day2Balance,
+                                day2Trans.totalCredit,
+                                day2Trans.totalDebit)
+                        }),
+                    totalCredits: day1Trans.totalCredit + day2Trans.totalCredit,
+                    totalDebits: day1Trans.totalDebit + day2Trans.totalDebit)
             };
         }
 
         public class TestRecord
         {
             public Account Input { get; set; }
-            public BalanceReport ExpectedBalanceReport { get; set; }
+            public EodBalanceListReport ExpectedBalanceReport { get; set; }
+            public long TotalCredits { get; set; }
+            public long TotalDebits { get; set; }
 
             public TestRecord(
                 Account input,
-                BalanceReport expectedReport)
+                EodBalanceListReport expectedReport,
+                long totalCredits,
+                long totalDebits)
             {
                 Input = input;
                 ExpectedBalanceReport = expectedReport;
+                TotalCredits = totalCredits;
+                TotalDebits = totalDebits;
             }
         }
 
@@ -139,27 +166,41 @@
         {
             var random = new Random();
             var transactions = new List<Transaction>();
+            var rollingCredits = 0L;
+            var rollingDebits = 0L;
 
             for (int i = 0; i < count; i++)
             {
-                var amount = random.Next(-1000, 1000);
                 var range = (maxDate - minDate);
                 var date = minDate + TimeSpan.FromSeconds(range.TotalSeconds - random.Next(0, (int)range.TotalSeconds));
 
+                CreditDebitIndicator creditDebitIndicator;
+                var amount = random.Next(-1000, 1000);
+                var absAmount = Math.Abs(amount);
+
+                if (amount >= 0)
+                {
+                    creditDebitIndicator = CreditDebitIndicator.Credit;
+                    rollingCredits += absAmount;
+                }
+                else
+                {
+                    creditDebitIndicator = CreditDebitIndicator.Debit;
+                    rollingDebits += absAmount;
+                }
+
                 transactions.Add(new Transaction(
                     "Test Transaction",
-                    amount,
-                    amount < 0
-                        ? CreditDebitIndicator.Credit
-                        : CreditDebitIndicator.Debit,
+                    absAmount,
+                    creditDebitIndicator,
                     TransactionStatus.Booked,
                     date,
                     null));
             }
 
             return (
-                transactions.Where(t => t.Amount < 0).Sum(t => Math.Abs(t.Amount)),
-                transactions.Where(t => t.Amount > 0).Sum(t => t.Amount),
+                rollingCredits,
+                rollingDebits,
                 transactions);
         }
     }

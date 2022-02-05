@@ -6,6 +6,6 @@
 
     public interface IAccountBalanceReportService
     {
-        Task<BalanceReport> GetEodBalanceReport(Account account);
+        Task<EodBalanceListReport> GetEodBalanceReport(Account account);
     }
 }

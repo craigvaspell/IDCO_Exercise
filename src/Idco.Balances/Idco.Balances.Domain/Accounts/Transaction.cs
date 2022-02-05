@@ -12,6 +12,10 @@
         public DateTime BookingDate { get; }
         public MerchantDetails MerchantDetails { get; }
 
+        public long SignedAmount => CreditDebitIndicator == CreditDebitIndicator.Credit
+            ? Amount
+            : Amount * -1;
+
         public Transaction(
             string description,
             long amount,
