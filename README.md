@@ -111,9 +111,7 @@ Solution has swagger generation included, located at "http(s)://\<applicationRoo
 > - Curse my memory; I definitely have but can't remember the details
 > - Try to find what I had previously come across, and either:
 > 	- Success! I know how I can use this to solve the immediate problem
-><br>
-> *or*
-><br>
+> <br>*or*<br>
 > 	- Hmmmm, is there anyone I can reach out to that would be familiar with the subject or have some insight?
 > 	- If not: cursory google/stackoverflow search
 > 	- If not: time for some pen and paper to map out the problem
