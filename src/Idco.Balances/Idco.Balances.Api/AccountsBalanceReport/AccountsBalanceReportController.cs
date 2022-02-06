@@ -29,7 +29,7 @@
         /// Produces an Accounts Balance Report from provided Accounts information
         /// </summary>
         /// <response code="200">The reqest has been processed successfully.</response>
-        /// /// <response code="200">The reqest was invalid.</response>
+        /// <response code="400">The reqest was invalid.</response>
         /// <response code="500">There was a server problem.</response>
         [HttpPost("Process")]
         [ProducesResponseType(typeof(EodBalanceListReportDto), StatusCodes.Status200OK)]
